@@ -22,7 +22,7 @@ class Get_xml_data(app.Task):
 
     def run(self, html_str):
         
-        header = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.82 Safari/537.36'}
+        
         tender_info = []
 
         soup = BeautifulSoup(html_str, 'html.parser')
@@ -33,8 +33,10 @@ class Get_xml_data(app.Task):
             data_href = icon.select('a')[1]['href']
             xml_url  = 'https://zakupki.gov.ru/'+data_href.replace('view', 'viewXml')
 
+            header = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.82 Safari/537.36'}
             req = requests.request("GET", xml_url, headers=header)
             doc = xmltodict.parse(req.text)
+            
             #Беру объект через iter next, т.к. ключ первого значения бывает разный
             first_key = next(iter(doc.values()))
 
