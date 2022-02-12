@@ -11,19 +11,28 @@ class Main:
     def parse_pages(self,number):
     
         ts = time.time()
+        page_urls_arr = []
+        result_arr = []
 
         for x in range(0,number):
             url = 'https://zakupki.gov.ru/epz/order/extendedsearch/results.html?fz44=on&pageNumber='+str(x+1)
 
-            page = Get_page().apply_async(args=[url])
+            urls = Get_page().apply_async(args=[url])
+            page_urls_arr.append(urls)
 
-            xml_data = Get_xml_data().apply_async(args=[page.get()])
+        for y in page_urls_arr:
 
-            for data in xml_data.get():
-                print('Cсылка на печатную форму: {}; Дата публикации: {};'.format(data['xml_url'], data['date']))
+            xml_links = y.get()
+            for link in xml_links:
+
+                xml_data = Get_xml_data().apply_async(args=[link])
+                result_arr.append(xml_data)
+
+        for data in result_arr:
+                data = data.get()
+                print('Cсылка на печатную форму: {}; Дата публикации: {};'.format(data['xml_url'], data['date']))    
 
         print('Время выполнения: {} сек.'.format(time.time()-ts))
 
 Main()
     
-
