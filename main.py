@@ -16,7 +16,7 @@ class Main:
 
         for x in range(0,number):
             url = 'https://zakupki.gov.ru/epz/order/extendedsearch/results.html?fz44=on&pageNumber='+str(x+1)
-
+            #Собираю ссылки со страницы
             urls = Get_page().apply_async(args=[url])
             page_urls_arr.append(urls)
 
@@ -24,11 +24,12 @@ class Main:
 
             xml_links = y.get()
             for link in xml_links:
-
+                #Отправляю таски на парсинг инфы с формы
                 xml_data = Get_xml_data().apply_async(args=[link])
                 result_arr.append(xml_data)
 
         for data in result_arr:
+                #Собираю результаты тасков
                 data = data.get()
                 print('Cсылка на печатную форму: {}; Дата публикации: {};'.format(data['xml_url'], data['date']))    
 
