@@ -5,15 +5,25 @@ import xmltodict
 
 app = Celery('tasks', broker='redis://localhost:6379', backend='rpc')
 
-class Get_page(app.Task):
+class Requests:
+    def __init__(self):
+        
+        self.header = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.82 Safari/537.36'}
+
+    def request_page(self, url):
+
+        req = requests.request("GET", url, headers=self.header)
+        return req
+
+class Get_page(app.Task,Requests):
 
     name = 'tasks.get_page'
 
     def run(self, url):
 
-        header = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.82 Safari/537.36'}
-        req = requests.request("GET", url, headers=header)
         
+        req = self.request_page(url)
+    
         soup = BeautifulSoup(req.text, 'html.parser')
         icon_links = soup.find_all("div", {"class": "w-space-nowrap ml-auto registry-entry__header-top__icon"})
         url_arr = []
@@ -23,16 +33,17 @@ class Get_page(app.Task):
             data_href = icon.select('a')[1]['href']
             xml_url  = 'https://zakupki.gov.ru/'+data_href.replace('view', 'viewXml')
             url_arr.append(xml_url)
+            
         return url_arr
 
-class Get_xml_data(app.Task):
+class Get_xml_data(app.Task, Requests):
 
     name = 'tasks.get_xml_data'
 
     def run(self, xml_url):
         
-        header = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.82 Safari/537.36'}
-        req = requests.request("GET", xml_url, headers=header)
+
+        req = self.request_page(xml_url)
         doc = xmltodict.parse(req.text)
             
         #Беру объект через iter next, т.к. ключ первого значения бывает разный
